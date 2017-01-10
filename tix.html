@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>A TIX Clock implementation by Àngel Mariages</title>
+	<meta charset="utf-8">
+	<script type="text/javascript">
+		var interval;
+		var canvas;
+		var quadrats = [];
+		var d = new Date();		
+		
+		function main() {
+			crearQuadrats();
+			pintarQuadrats();			
+			interval = setInterval(actualitzarQuadrats, 2500);		
+		}
+
+		Quadrat.amplada = 50;
+		Quadrat.alcada = 50;
+		function Quadrat(x, y, color, ences) {
+			this.x = x;
+			this.y = y;
+			this.color = color;
+			this.ences = ences;
+		}
+
+		function crearQuadrats() {
+			for(var i = 0; i < 3; i++) {
+				quadrats.push(new Quadrat(10, i * (Quadrat.amplada + 5), "#FF0000", false));
+			}
+
+			for(var i = 1; i < 4; i++) {
+	            for(var j = 0; j < 3; j++) {
+	                quadrats.push(new Quadrat(i * (Quadrat.amplada + 5) + 20, j * (Quadrat.alcada + 5), "#00FF00", false));
+	            }
+	        }
+
+	        for(var i = 1; i < 3; i++) {
+	            for(var j = 0; j < 3; j++) {
+	                quadrats.push(new Quadrat(i * (Quadrat.amplada + 5) + 210, j * (Quadrat.alcada + 5), "#0000FF", false));
+	            }
+	        }
+
+	        for(var i = 1; i < 4; i++) {
+	            for(var j = 0; j < 3; j++) {
+	                quadrats.push(new Quadrat(i * (Quadrat.amplada + 5) + 330, j * (Quadrat.alcada + 5), "#FF0000", false));
+	            }
+	        }
+		}
+
+		function pintarQuadrats() {
+			for (var i = 0; i < quadrats.length; i++) {
+				canvas.fillStyle = quadrats[i].color;
+				canvas.fillRect(quadrats[i].x, quadrats[i].y, Quadrat.amplada, Quadrat.alcada);
+			}
+		}
+
+		function obtenirRandom(min, max) {
+			return Math.floor((Math.random() * (max - min)) + min);
+		}
+
+		function actualitzarQuadrats() {
+			//if(hora1 > 2 || hora1 < 0 || hora2 > 9 || hora2 < 0 || mins1 > 6 || mins1 < 0 || mins2 > 9 || mins2 < 0)
+        	//	return;        	
+        	var h = d.getHours().toString();
+        	var m = d.getMinutes().toString();
+        	var hora1 = h.substring(0,1), hora2 = h.substring(1,2), mins1 = m.substring(0,1), mins2 = m.substring(1,2);
+
+	        for(var i = 0; i < quadrats.length; i++) {
+	            quadrats[i].color = "#666666";
+	            quadrats[i].ences = false;
+	        }
+
+	        //hora1 (0,2)
+	        if(hora1 != 0) {
+		        for(var i = 0; i < hora1; i++) {
+		            var r = obtenirRandom(0,3);
+		            while(quadrats[r].ences) {
+		                r = obtenirRandom(0,3);
+		            	console.log(r + "," + quadrats[r].ences);
+		            }
+		            quadrats[r].color = "#FF0000";
+		            quadrats[r].ences = true;
+		        }
+	    	}
+
+	        //hora2 (3,11)
+	        if(hora2 != 0) {
+		        for(var i = 0; i < hora2; i++) {
+		            var r = obtenirRandom(3,12);
+		            while(quadrats[r].ences) {
+		                r = obtenirRandom(3,12);
+		            }
+		            quadrats[r].color = "#00FF00";
+		            quadrats[r].ences = true;
+		        }
+	    	} else if(hora2 == 9) {
+	    		for(var i = 18; i < 27; i++) {
+	    			quadrats[r].color = "#FF0000";
+		            quadrats[r].ences = true;
+	    		}
+	    	}
+
+	        //mins1 (12,17)
+	        if(mins1 != 0) {
+		        for(var i = 0; i < mins1; i++) {
+		            var r = obtenirRandom(12,18);
+		            while(quadrats[r].ences) {
+		                r = obtenirRandom(12,18);
+		            }
+		            quadrats[r].color = "#0000FF";
+		            quadrats[r].ences = true;
+		        }
+	    	}
+
+	        //mins2 (18,26)
+	        if(mins2 != 0) {
+		        for(var i = 0; i < mins2; i++) {
+		            var r = obtenirRandom(18,27);
+		            while(quadrats[r].ences) {
+		            	r = obtenirRandom(18,27);
+		                //r = Math.floor((Math.random() * (26 - 18)) + 18);
+		            }
+		            quadrats[r].color = "#FF0000";
+		            quadrats[r].ences = true;
+		        }
+	    	} else if(mins2 == 9) {
+	    		for(var i = 18; i < 27; i++) {
+	    			quadrats[r].color = "#FF0000";
+		            quadrats[r].ences = true;
+	    		}
+	    	}
+	        pintarQuadrats();
+		}
+
+		function openPopup() {
+			window.open("tix.html", "", "width=570, height=170, rezisable=0, scrollbars=0");
+		}
+
+		function setTimeInterval() {
+			var time = parseInt(document.getElementById("interval").value);
+			clearInterval(interval);
+			interval = setInterval(window.actualitzarQuadrats, time);
+		}
+
+		window.onload=function() {
+			canvas = document.getElementById("clock").getContext("2d");
+			main();
+		}
+	</script>
+</head>
+<body>
+	<canvas height="160" width="560" id="clock">
+		Your browser does not support the HTML5 canvas tag.
+	</canvas>
+	<br>
+	<button onclick="openPopup()">Open in popup</button>
+	<br>
+	Time interval (in ms):<input id="interval" value="2500" style="width:50px" type="text">
+	<button onclick="setTimeInterval()">Set time interval</button>
+
+</body></html>
