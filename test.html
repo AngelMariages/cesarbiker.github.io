@@ -15,6 +15,7 @@
 
             google.charts.load('current', {'packages':['bar']});
 
+
             var STATIONS = {"71600":"Sant Vicenç de Calders","71601":"Calafell","71602":"Segur de Calafell","71603":"Cunit","71604":"Cubelles","71700":"Vilanova i la Geltrú","71701":"Sitges","71703":"Garraf","71704":"Platja de Castelldefels","71705":"Castelldefels","71706":"Gavà","71707":"El Prat de Llobregat","71708":"Bellvitge","71709":"Viladecans","71801":"Barcelona-Sants","71802":"Barcelona-Passeig de Gracia","72201":"El Vendrell","72202":"L'Arboç","72203":"Els Monjos","72204":"Vilafranca del Penedés","72205":"La Granada","72206":"Lavern-Subirats","72207":"Sant Sadurní d'Anoia","72208":"Gelida","72209":"Martorell","72210":"Castellbisbal","72211":"El Papiol","72300":"Molins de Rei","72301":"Sant Feliu de Llobregat","72302":"Sant Joan Despí","72303":"Cornellà","72305":"L'Hospitalet de Llobregat","72400":"Aeroport","72501":"Rubí","72502":"Sant Cugat del Vallés","72503":"Cerdanyola-Universitat","77002":"Montcada Ripollet","77003":"Santa Perpetua de Mogoda","77004":"Mollet-Santa Rosa","77005":"Parets del Vallès","77006":"Granollers-Canovelles","77100":"Les Franqueses del Vallès","77102":"La Garriga","77103":"Figaro","77104":"Sant Martí de Centelles","77105":"Centelles","77106":"Balenyà-Els Hostalets","77107":"Balenyà-Tona-Seva","77109":"Vic","77110":"Manlleu","77111":"Torelló","77112":"Borgonyà","77113":"Sant Quirze de Besora","77114":"La Farga de Bebié","77200":"Ripoll","77301":"Campdevànol","77303":"Ribes de Freser","77304":"Planoles","77305":"Toses","77306":"La Molina","77307":"Urtx-Alp","77309":"Puigcerdà","77310":"La Tor de Querol-Enveig","78600":"Manresa","78604":"Sant Vicenç de Castellet","78605":"Castellbell i el Vilar-Monistrol de Mont","78606":"Vacarisses","78607":"Vacarisses-Torreblanca","78609":"Viladecavalls","78610":"Sant Miquel de Gonteres-Viladecavalls","78700":"Terrassa","78703":"Sabadell Sud","78704":"Sabadell Centre","78705":"Barberà del Vallès","78706":"Cerdanyola del Valĺès","78707":"Montcada i Reixac-Santa Maria","78708":"Montcada i Reixac-Manresa","78709":"Sabadell Nord","78710":"Terrassa Est","78800":"Montcada Bifurcació","78801":"Barcelona-Torre del Baró","78802":"Barcelona-Sant Andreu Arenal","78804":"Barcelona-Arc de Triomf","78805":"Barcelona-Plaça de Catalunya","78806":"Barcelona-La Sagrera-Meridiana","79004":"Barcelona-Sant Andreu Comtal","79005":"Montcada i Reixac","79006":"Mollet-Sant Fost","79007":"Montmeló","79009":"Barcelona-El Clot-Aragó","79011":"La Llagosta","79100":"Granollers Centre","79101":"Cardedeu","79102":"Llinars del VallÌs","79103":"Palautordera","79104":"Sant Celoni","79105":"Gualba","79106":"Riells i Viabrea-Breda","79107":"Hostalric","79109":"Les Franqueses-Granollers Nord","79200":"Maçanet-Massanes","79400":"Barcelona-Estació de França","79403":"Sant Adrià del Besòs","79404":"Badalona","79405":"Montgat","79406":"Montgat Nord","79407":"El Masnou","79408":"Ocata","79409":"Premià de Mar","79410":"Vilassar de Mar","79412":"Cabrera de Mar-Vilassar de Mar","79500":"Mataró","79501":"Sant Andreu de Llavaneres","79502":"Caldes d'Estrac","79600":"Arenys de Mar","79601":"Canet de Mar","79602":"Sant Pol de Mar","79603":"Calella","79604":"Pineda de Mar","79605":"Maljograt de Mar","79606":"Blanes","79607":"Tordera","79608":"Santa Susanna"}
 
 
@@ -22,35 +23,9 @@
             var journeys = [];
             var journeysIDS = [];
 
-            journeysRef.on('value', function(snapshot) {
-                journeys = snapshot.val();
-                journeysIDS = Object.keys(journeys);
-
-                var max = 0;
-                journeysIDS.forEach(function(journey){
-                    var times = journeys[journey];
-                    if(times > max) max = times;
-                });
-
-                var ratio = max / 100;
-
-                var dataTable = new google.visualization.DataTable();
-                dataTable.addColumn('string', 'Journey');
-                dataTable.addColumn('number', 'Times');
-                dataTable.addColumn({type: 'number', role: 'tooltip'});
-                var data_rows = [];
-                journeysIDS.forEach(function(journey) {
-                    var pair = journey.split('@');
-                    //var inRange = 20 + Math.round(journeys[journey] / ratio);
-                    var inRange = 20 + journeys[journey];
-                    if(inRange > 0)
-                    	data_rows.push([STATIONS[pair[0]] + ' to ' + STATIONS[pair[2]],
-                    		inRange, journeys[journey]]);	                
-                });
-                data_rows.sort(function(a,b) {
-                	return b[1] - a[1];
-                });
-                dataTable.addRows(data_rows);
+            var chart;
+            window.onload = function() {
+	            chart = new google.charts.Bar(document.getElementById('chart_div'));
 
                 var options = {
                 	title : 'Updated on: ' + new Date(),
@@ -61,12 +36,52 @@
 							0: { side: 'top', label: 'Statics, updated on: ' + new Date()} // Top x-axis.
 						}
 					},
+					animation: {
+				    	duration: 1000,
+				    	easing: 'out'
+				    },
+				    hAxis : {
+				    	viewWindowMode: 'explicit',
+				    	viewWindow : {
+				    		min: 100,
+				    		max: 200
+				    	}
+				    }
                 };
 
-                var chart = new google.charts.Bar(document.getElementById('chart_div'));
+	            journeysRef.on('value', function(snapshot) {
+	                journeys = snapshot.val();
+	                journeysIDS = Object.keys(journeys);
 
-                chart.draw(dataTable, options);
-            });
+	                var max = 0;
+	                journeysIDS.forEach(function(journey){
+	                    var times = journeys[journey];
+	                    if(times > max) max = times;
+	                });
+
+	                var ratio = max / 100;
+
+	                var dataTable = new google.visualization.DataTable();
+	                dataTable.addColumn('string', 'Journey');
+	                dataTable.addColumn('number', 'Times');
+	                dataTable.addColumn({type: 'number', role: 'tooltip'});
+	                var data_rows = [];
+	                journeysIDS.forEach(function(journey) {
+	                    var pair = journey.split('@');
+	                    //var inRange = 20 + Math.round(journeys[journey] / ratio);
+	                    var inRange = 20 + journeys[journey];
+	                    if(inRange > 0)
+	                    	data_rows.push([STATIONS[pair[0]] + ' to ' + STATIONS[pair[2]],
+	                    		inRange, journeys[journey]]);	                
+	                });
+	                data_rows.sort(function(a,b) {
+	                	return b[1] - a[1];
+	                });
+	                dataTable.addRows(data_rows);
+
+	                chart.draw(dataTable, options);
+	            });
+        	};
         </script>
     </head>
     <body>
