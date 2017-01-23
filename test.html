@@ -22,6 +22,31 @@
             var journeys = [];
             var journeysIDS = [];
 
+            var chart;
+            var firstTime = true;
+            var options = {
+                bars: 'horizontal',
+                legend: { position: 'none' },
+                axes: {
+                    x: {
+                        0: { side: 'top', label: 'Statics, updated on: ' + new Date()} // Top x-axis.
+                    }
+                },
+                hAxis: {
+                    format : "decimal"
+                }
+            };
+
+            window.onload = function() {
+                drawChart(new google.visualization.DataTable());
+            };
+
+            var drawChart = function(dataTable) {
+                if(!chart) chart = new google.charts.Bar(document.getElementById('chart_div'));
+
+                chart.draw(dataTable, google.charts.Bar.convertOptions(options));
+            }
+
             journeysRef.on('value', function(snapshot) {
                 journeys = snapshot.val();
                 journeysIDS = Object.keys(journeys);
@@ -41,31 +66,26 @@
                 var data_rows = [];
                 journeysIDS.forEach(function(journey) {
                     var pair = journey.split('@');
-                    //var inRange = 20 + Math.round(journeys[journey] / ratio);
-                    var inRange = 20 + journeys[journey];
-                    if(inRange > 0)
-                    	data_rows.push([STATIONS[pair[0]] + ' to ' + STATIONS[pair[2]],
-                    		inRange, journeys[journey]]);	                
+
+                    if(firstTime) {
+                        data_rows.push([STATIONS[pair[0]] + ' to '
+                                + STATIONS[pair[2]], 0, 0]);
+                    } else {
+                        //var inRange = 20 + Math.round(journeys[journey] / ratio);
+                        var inRange = 20 + journeys[journey];
+                        if(inRange > 0) {
+                            data_rows.push([STATIONS[pair[0]] + ' to '
+                                + STATIONS[pair[2]], inRange, journeys[journey]]);
+                        }
+                    }	                
                 });
                 data_rows.sort(function(a,b) {
                 	return b[1] - a[1];
                 });
                 dataTable.addRows(data_rows);
 
-                var options = {
-                	title : 'Updated on: ' + new Date(),
-                	bars: 'horizontal',
-                    legend: { position: 'none' },
-					axes: {
-						x: {
-							0: { side: 'top', label: 'Statics, updated on: ' + new Date()} // Top x-axis.
-						}
-					},
-                };
-
-                var chart = new google.charts.Bar(document.getElementById('chart_div'));
-
-                chart.draw(dataTable, options);
+                if(firstTime) firstTime = false;
+                drawChart(dataTable);
             });
         </script>
     </head>
