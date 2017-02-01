@@ -21,10 +21,9 @@
             var journeysRef = firebase.database().ref('statics/journeys');
             var journeys = [];
             var journeysIDS = [];
-            var data_rows = [];
-            var data_rows_normalized = [];
+            var dataTable, dataTableNormalized;
 
-            var normalized = false;
+            var normalized = true;
             var chart;
             var options = {
                 bars: 'horizontal',
@@ -62,16 +61,10 @@
 
                 var ratio = max / 100;
 
-                var dataTable = new google.visualization.DataTable();
-                var dataTableNormalized = new google.visualization.DataTable();
-                dataTable.addColumn('string', 'Journey');
-                dataTable.addColumn('number', 'Times');
-                dataTable.addColumn({type: 'number', role: 'tooltip'});
-                dataTableNormalized.addColumn('string', 'Journey');
-                dataTableNormalized.addColumn('number', 'Times');
-                dataTableNormalized.addColumn({type: 'number', role: 'tooltip'});
-                data_rows = [];
-                data_rows_normalized = [];
+                initDataTables();
+                
+                var data_rows = [];
+                var data_rows_normalized = [];
                 journeysIDS.forEach(function(journey) {
                     var pair = journey.split('@');
 
@@ -92,16 +85,35 @@
                 });
                 dataTableNormalized.addRows(data_rows_normalized);
                 dataTable.addRows(data_rows);
-                drawChart(dataTable);
-
-                setTimeout(function() {
-                    drawChart(dataTableNormalized);
-                }, 2000);
+                drawChart(dataTableNormalized);
             });
+
+            function switchNormalize(button) {
+                if(normalized) {
+                    normalized = false;
+                    button.innerHTML = "Normalize";
+                    drawChart(dataTable);
+                } else {
+                    normalized = true;
+                    button.innerHTML = "Denormalize";
+                    drawChart(dataTableNormalized)
+                }
+            }
+
+            function initDataTables() {
+                dataTable = new google.visualization.DataTable();
+                dataTableNormalized = new google.visualization.DataTable();
+                dataTable.addColumn('string', 'Journey');
+                dataTable.addColumn('number', 'Times');
+                dataTable.addColumn({type: 'number', role: 'tooltip'});
+                dataTableNormalized.addColumn('string', 'Journey');
+                dataTableNormalized.addColumn('number', 'Times');
+                dataTableNormalized.addColumn({type: 'number', role: 'tooltip'});
+            }
         </script>
     </head>
     <body>
-        <center><button> Denormalize </button></center>
-        <div id="chart_div" style="height: 100%; width: 100%"/>
+        <center style="height: 5%;"><button onclick="switchNormalize(this);"> Denormalize </button></center>
+        <div id="chart_div" style="height: 95%; width: 100%"/>
     </body>
 </html>
