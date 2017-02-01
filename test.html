@@ -21,9 +21,11 @@
             var journeysRef = firebase.database().ref('statics/journeys');
             var journeys = [];
             var journeysIDS = [];
+            var data_rows = [];
+            var data_rows_normalized = [];
 
+            var normalized = false;
             var chart;
-            var firstTime = true;
             var options = {
                 bars: 'horizontal',
                 legend: { position: 'none' },
@@ -34,11 +36,12 @@
                 },
                 hAxis: {
                     format : "decimal"
+                },
+                animation:{
+                    duration: 1000,
+                    easing: 'out',
+                    startup: true
                 }
-            };
-
-            window.onload = function() {
-                drawChart(new google.visualization.DataTable());
             };
 
             var drawChart = function(dataTable) {
@@ -60,37 +63,45 @@
                 var ratio = max / 100;
 
                 var dataTable = new google.visualization.DataTable();
+                var dataTableNormalized = new google.visualization.DataTable();
                 dataTable.addColumn('string', 'Journey');
                 dataTable.addColumn('number', 'Times');
                 dataTable.addColumn({type: 'number', role: 'tooltip'});
-                var data_rows = [];
+                dataTableNormalized.addColumn('string', 'Journey');
+                dataTableNormalized.addColumn('number', 'Times');
+                dataTableNormalized.addColumn({type: 'number', role: 'tooltip'});
+                data_rows = [];
+                data_rows_normalized = [];
                 journeysIDS.forEach(function(journey) {
                     var pair = journey.split('@');
 
-                    if(firstTime) {
+                    var normalized = Math.round(journeys[journey] / ratio);
+                    var inRange = 20 + journeys[journey];
+                    if(normalized > 0) {
                         data_rows.push([STATIONS[pair[0]] + ' to '
-                                + STATIONS[pair[2]], 0, 0]);
-                    } else {
-                        //var inRange = 20 + Math.round(journeys[journey] / ratio);
-                        var inRange = 20 + journeys[journey];
-                        if(inRange > 0) {
-                            data_rows.push([STATIONS[pair[0]] + ' to '
-                                + STATIONS[pair[2]], inRange, journeys[journey]]);
-                        }
-                    }	                
+                            + STATIONS[pair[2]], inRange, journeys[journey]]);
+                        data_rows_normalized.push([STATIONS[pair[0]] + ' to '
+                            + STATIONS[pair[2]], normalized, journeys[journey]]);    
+                    }                
                 });
                 data_rows.sort(function(a,b) {
                 	return b[1] - a[1];
                 });
+                data_rows_normalized.sort(function(a,b) {
+                	return b[1] - a[1];
+                });
+                dataTableNormalized.addRows(data_rows_normalized);
                 dataTable.addRows(data_rows);
-
-                if(firstTime) firstTime = false;
                 drawChart(dataTable);
+
+                setTimeout(function() {
+                    drawChart(dataTableNormalized);
+                }, 2000);
             });
         </script>
     </head>
     <body>
-        <div id="chart_div" style="height: 100%; width: 100%">
-        </div>
+        <center><button> Denormalize </button></center>
+        <div id="chart_div" style="height: 100%; width: 100%"/>
     </body>
 </html>
