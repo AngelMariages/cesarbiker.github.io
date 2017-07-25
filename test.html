@@ -15,7 +15,7 @@
         firebase.initializeApp(config);
 
         google.charts.load('current', {
-            'packages': ['corechart']
+            'packages': ['corechart', 'bar']
         });
 
         var stationRelations = {};
@@ -146,7 +146,7 @@
         }
 
 
-        var journeysRef = firebase.database().ref('statics/journeys');
+        var journeysRef = firebase.database().ref('statics/sanitaized');
         var journeys = [];
         var journeysIDS = [];
         var dataTable, dataTableNormalized;
@@ -168,15 +168,71 @@
             }
         };
 
-        var drawChart = function(dataTable) {
-            if (!chart) chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+        var drawChart = function(dataTable, day) {
+            let chartDiv = document.createElement('div');
+            let dayLabel = document.createElement('b');
+            dayLabel.innerHTML = day;
+            dayLabel.style = "font-size: 30px; color: darkgreen; padding: 2px; animation: mymove 1s infinite;"
+            document.getElementById('chart_div').appendChild(dayLabel);
+            document.getElementById('chart_div').appendChild(chartDiv);
+            if (!chart) chart = new google.charts.Bar(chartDiv);
 
-            chart.draw(dataTable, options);
+            chart.draw(dataTable, google.charts.Bar.convertOptions(options));
+        }
+
+        function parseYear(year) {
+            let monthKeys = Object.keys(year);
+            let goodYear = {};
+            monthKeys.forEach(month => {
+                let monthCount = 0;
+                goodYear[month] = {};
+                Object.keys(year[month]).forEach(day => {
+                    let dayCount = 0;
+                    goodYear[month][day] = {};
+                    Object.keys(year[month][day]).forEach(hour => {
+                        let hourCount = 0;
+                        goodYear[month][day][hour] = {};
+                        Object.keys(year[month][day][hour]).forEach(journ => {
+                            let value = year[month][day][hour][journ];
+                            hourCount += value;
+                            monthCount += value;
+                            dayCount += value;
+                        });
+                        goodYear[month][day][hour].count = hourCount;
+                    });
+                    goodYear[month][day].count = dayCount;
+                });
+                goodYear[month].count = monthCount;
+            });
+
+            return goodYear;
         }
 
         journeysRef.once('value', function(snapshot) {
-            journeys = snapshot.val();
-            journeysIDS = Object.keys(journeys);
+            let sanitaized = snapshot.val();
+            let yearsKeys = Object.keys(sanitaized);
+            let years = [];
+
+            yearsKeys.forEach(val => {
+                years[val] = parseYear(sanitaized[val]);
+            });
+
+            let dayChartCols = [];
+            dayChartCols.push(['Day', 'Value']);
+
+            let d = new Date().getTimezoneOffset() / -60;
+
+            Object.keys(years[2017]).forEach(val => {
+                Object.keys(years[2017][val]).forEach(day => {
+                    Object.keys(years[2017][val][day]).forEach(hour => {
+                        if(hour !== 'count') dayChartCols.push([parseInt(hour) + d, years[2017][val][day][hour].count]);
+                    });
+                    if(day !== 'count') drawChart(google.visualization.arrayToDataTable(dayChartCols), day);
+                    dayChartCols = [];
+                });
+            });
+
+            /*journeysIDS = Object.keys(journeys);
 
             var max = 0;
             journeysIDS.forEach(function(journey) {
@@ -222,7 +278,7 @@
             });
             dataTableNormalized.addRows(data_rows_normalized);
             dataTable.addRows(data_rows);
-            drawChart(dataTableNormalized);
+            drawChart(dataTableNormalized);*/
         });
 
         function switchNormalize(button) {
@@ -245,56 +301,6 @@
             dataTableNormalized.addColumn('string', 'Journey');
             dataTableNormalized.addColumn('number', 'Times');
         }
-
-        function addRow(origin, destination, times) {
-            let table = document.getElementById('table_div');
-            let tr = document.createElement('div');
-            tr.classList.add('row');
-
-            let td = document.createElement('div');
-            td.classList.add('col');
-            td.innerHTML = origin;
-
-            tr.appendChild(td);
-
-            td = document.createElement('div');
-            td.classList.add('col');
-            td.innerHTML = destination;
-
-            tr.appendChild(td);
-
-            td = document.createElement('div');
-            td.classList.add('col');
-            td.innerHTML = times;
-
-            tr.appendChild(td);
-
-            table.appendChild(tr);
-        }
-
-        function clearTable() {
-            document.getElementById('table_div').innerHTML = '';
-        }
-
-        function drawPieChart(station) {
-            var relation = stationRelations[station];
-
-            var newPie = document.createElement('div');
-            document.getElementById('table_div').appendChild(newPie);
-
-            var data = new google.visualization.DataTable();
-            data.addColumn('string', 'Destination');
-            data.addColumn('number', 'Times');
-            Object.keys(relation).forEach(function(destination) {
-                data.addRow([destination, relation[destination]]);
-            });
-
-            var chart = new google.visualization.PieChart(newPie);
-            chart.draw(data, {
-                title: station,
-                pieHole: 0.4
-            });
-        }
     </script>
 </head>
 
@@ -315,12 +321,16 @@
             border: 2px solid black;
             display: table-cell;
         }
-    </style>
-    <center style="height: 5%;"><button onclick="switchNormalize(this);"> Denormalize </button></center>
-    <!--<div id="chart_div" style="height: px; width: 100%" />-->
-    <div id="table_div">
 
-    </div>
+        @keyframes mymove {
+            0% {color: darkgreen;}
+            50% {color: darkorange;}
+            100% {color: darkgreen;}
+        }
+    </style>
+    <div id="chart_div" style="text-align: center; width: 100%">
+    
+    </div>    
 </body>
 
 </html>
