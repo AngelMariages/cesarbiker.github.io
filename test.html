@@ -175,7 +175,7 @@
             dayLabel.style = "font-size: 30px; color: darkgreen; padding: 2px; animation: mymove 1s infinite;"
             document.getElementById('chart_div').appendChild(dayLabel);
             document.getElementById('chart_div').appendChild(chartDiv);
-            if (!chart) chart = new google.charts.Bar(chartDiv);
+            chart = new google.charts.Bar(chartDiv);
 
             chart.draw(dataTable, google.charts.Bar.convertOptions(options));
         }
