@@ -229,6 +229,7 @@
                     });
                     if(day !== 'count') drawChart(google.visualization.arrayToDataTable(dayChartCols), day);
                     dayChartCols = [];
+		    dayChartCols.push(['Day', 'Value']);
                 });
             });
 
