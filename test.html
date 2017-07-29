@@ -154,12 +154,10 @@
         var normalized = true;
         var chart;
         var options = {
-            legend: {
-                position: 'none'
-            },
+            legend: "none",
+            is3D: true,
             hAxis: {
-                format: "decimal",
-                scaleType: "mirrorLog"
+                maxValue: 23
             },
             animation: {
                 duration: 1000,
@@ -168,16 +166,21 @@
             }
         };
 
-        var drawChart = function(dataTable, day) {
+        var drawChart = function(data, day) {
             let chartDiv = document.createElement('div');
             let dayLabel = document.createElement('b');
             dayLabel.innerHTML = day;
             dayLabel.style = "font-size: 30px; color: darkgreen; padding: 2px; animation: mymove 1s infinite;"
             document.getElementById('chart_div').appendChild(dayLabel);
             document.getElementById('chart_div').appendChild(chartDiv);
-            chart = new google.charts.Bar(chartDiv);
+            chart = new google.visualization.ColumnChart(chartDiv);
 
-            chart.draw(dataTable, google.charts.Bar.convertOptions(options));
+            let dataTable = new google.visualization.DataTable();
+            dataTable.addColumn('number', 'Hour');
+            dataTable.addColumn('number', 'Count');
+            dataTable.addRows(data);
+
+            chart.draw(dataTable, options);
         }
 
         function parseYear(year) {
@@ -208,6 +211,16 @@
             return goodYear;
         }
 
+        function formatData(dayChartCols) {
+            let formated = [];
+            if(dayChartCols.length) {
+                dayChartCols = dayChartCols.sort((a, b) => {
+                    return a[0] - b[0];
+                });
+            }
+            return dayChartCols;
+        }
+
         journeysRef.once('value', function(snapshot) {
             let sanitaized = snapshot.val();
             let yearsKeys = Object.keys(sanitaized);
@@ -218,18 +231,22 @@
             });
 
             let dayChartCols = [];
-            dayChartCols.push(['Day', 'Value']);
 
             let d = new Date().getTimezoneOffset() / -60;
 
             Object.keys(years[2017]).forEach(val => {
                 Object.keys(years[2017][val]).forEach(day => {
-                    Object.keys(years[2017][val][day]).forEach(hour => {
-                        if(hour !== 'count') dayChartCols.push([parseInt(hour) + d, years[2017][val][day][hour].count]);
-                    });
-                    if(day !== 'count') drawChart(google.visualization.arrayToDataTable(dayChartCols), day);
+                    for(let a = 0; a < 24; a++) {
+                        if(years[2017][val][day][pad(a)]) {
+                            dayChartCols.push([a, years[2017][val][day][pad(a)].count]);
+                        } else {
+                            dayChartCols.push([a, 0]);
+                        }
+                    }
+                    if(day !== 'count') {
+                        drawChart(formatData(dayChartCols), day);
+                    }
                     dayChartCols = [];
-		    dayChartCols.push(['Day', 'Value']);
                 });
             });
 
@@ -281,6 +298,12 @@
             dataTable.addRows(data_rows);
             drawChart(dataTableNormalized);*/
         });
+
+        function pad(num) {
+            let s = num + "";
+            while (s.length < 2) s = "0" + s;
+            return s;
+        }
 
         function switchNormalize(button) {
             if (normalized) {
