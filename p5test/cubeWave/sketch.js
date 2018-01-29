@@ -6,14 +6,15 @@ let ma;
 let maxD;
 
 function setup() {
-    createCanvas(400, 400, WEBGL);
+    createCanvas(windowWidth, windowWidth, WEBGL);
     ma = atan(1 / sqrt(2));
     maxD = dist(0,0, 200, 200);
 }
 
 function draw() {
-    background(100);
-    ortho(-400, 400, 400, -400, 0, 1000);
+    background(0);
+    translate(mouseX - width/2, -mouseY + width/2);
+    ortho(-windowWidth, windowWidth, windowWidth, -windowWidth, 0, 1000);
 
     rotateX(QUARTER_PI);
     rotateY(ma);
