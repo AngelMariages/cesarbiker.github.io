@@ -1,6 +1,6 @@
 /*jshint esversion: 6 */
 
-let stars = new Array(500);
+let stars = new Array(2000);
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
@@ -20,18 +20,35 @@ function draw() {
 
 class Star {
     constructor() {
-        this.x = random(-width, width);
-        this.y = random(-height, height);
+        this.x = random(-width * 2, width * 2);
+        this.y = random(-height * 4, height * 4);
         this.z = random(width);
         this.pz = this.z;
-        this.lineLength = random(0, 15);
+        this.minus = 2;
+        this.lineLength = 5;
     }
 
     update() {
-        this.z -= 6;
+        if(mouseIsPressed) {
+            if(this.minus < 200) {
+                this.minus = this.minus * 1.1;
+                if(this.minus > 120) {
+                    this.blue = true;
+                }
+            }
+            this.z -= this.minus;
+        } else {
+            this.blue = false;
+            this.z -= this.minus;
+            if(this.minus > 2) {
+                this.minus = this.minus / 1.1;
+            }
+        }
         if(this.z < 1) {
+            this.x = random(-width * 2, width * 2);
+            this.y = random(-height * 4, height * 4);
             this.z = width;
-            this.pz = width;
+            this.pz = 0;
         }
     }
 
@@ -43,6 +60,9 @@ class Star {
         let py = map(this.y / this.pz, 0, this.lineLength, 0, height);
 
         stroke(255);
+        if(this.blue) {
+            stroke(92, 214, 230);
+        }
         line(px, py, sx, sy);
         this.pz = this.z;
     }
