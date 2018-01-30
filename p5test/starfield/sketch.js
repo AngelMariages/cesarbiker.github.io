@@ -1,6 +1,6 @@
 /*jshint esversion: 6 */
 
-let stars = new Array(2000);
+let stars = new Array(1000);
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
