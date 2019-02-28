@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Wasm test</title>
+	<script>
+		// let multiply;
+
+		// function loadWebAssembly(fileName) {
+		// 	return fetch(fileName)
+		// 		.then(response => response.arrayBuffer())
+		// 		.then(bits => WebAssembly.compile(bits))
+		// 		.then(module => { return new WebAssembly.Instance(module) });
+		// };
+
+		// loadWebAssembly('multiply.wasm')
+		// 	.then(instance => {
+		// 		multiply = instance.exports._multiply;
+		// 	});
+
+		// function onInput() {
+		// 	const num1 = document.getElementById('num1');
+		// 	const num2 = document.getElementById('num2');
+		// 	const result = document.getElementById('result');
+
+		// 	result.textContent = multiply(num1.value, num2.value);
+		// }
+
+	</script>
+
+<script>
+		let multiply;
+		// Check for wasm support.
+		if (!('WebAssembly' in window)) {
+		  alert('you need a browser with wasm support enabled :(');
+		}
+		// Loads a WebAssembly dynamic library, returns a promise.
+		// imports is an optional imports object
+		function loadWebAssembly(filename, imports) {
+		  // Fetch the file and compile it
+		  return fetch(filename)
+			.then(response => response.arrayBuffer())
+			.then(buffer => WebAssembly.compile(buffer))
+			.then(module => {
+			  // Create the imports for the module, including the
+			  // standard dynamic library imports
+			  imports = imports || {};
+			  imports.env = imports.env || {};
+			  imports.env.__memory_base = imports.env.__memory_base || 0;
+			  imports.env.__table_base = imports.env.__table_base || 0;
+			  if (!imports.env.memory) {
+				imports.env.memory = new WebAssembly.Memory({ initial: 256 });
+			  }
+			  if (!imports.env.table) {
+				imports.env.table = new WebAssembly.Table({ initial: 0, element: 'anyfunc' });
+			  }
+			  // Create the instance.
+			  return new WebAssembly.Instance(module, imports);
+			});
+		}
+		// Main part of this example, loads the module and uses it.
+		loadWebAssembly('multiply.wasm')
+		  .then(instance => {
+			var exports = instance.exports; // the exports of that instance
+			multiply = exports._multiply; // the "doubler" function (note "_" prefix)
+		  }
+		);
+
+		function onInput() {
+			const num1 = document.getElementById('num1');
+			const num2 = document.getElementById('num2');
+			const result = document.getElementById('result');
+
+			result.textContent = multiply(num1.value, num2.value);
+		}
+	  </script>
+	<style>
+		* {
+			font-size: 1.3em;
+		}
+		input, strong {
+			margin-left: 1em;
+		}
+		input {
+			width: 3em;
+		}
+	</style>
+</head>
+
+<body>
+	<label>Num 1</label><input oninput="onInput()" value="0" type="number" id="num1">
+	<br/>
+	<label>Num 2</label><input oninput="onInput()" value="0" type="number" id="num2">
+	<br/>
+	<span>Result</span><strong id="result">0</strong>
+</body>
+
+</html>

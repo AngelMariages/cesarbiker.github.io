@@ -19,16 +19,31 @@ class Cell {
 			bottom: true,
 			left: true
 		};
+		this.hue = 255;
 		this.visited = false;
 	}
 
 	show(current) {
+		colorMode(HSB);
+
 		let x = this.i * this.w;
 		let y = this.j * this.w;
 
 		noStroke();
 		fill(0, 0, 0, 0);
 		rect(x, y, this.w, this.w);
+
+		if (this.visited) {
+			noStroke();
+			fill(this.hue, 255, 255);
+			rect(x, y, this.w, this.w);
+		}
+
+		if (current) {
+			noStroke();
+			fill(255, 0, 255, 255);
+			rect(x, y, this.w, this.w);
+		}
 
 		stroke(255);
 		if (this.walls.top) {
@@ -44,37 +59,30 @@ class Cell {
 			line(x, y + w, x, y);
 		}
 		noStroke();
-
-		if (this.visited) {
-			noStroke();
-			fill(255, 0, 255, 125);
-			rect(x, y, this.w, this.w);
-		}
-		if (current) {
-			noStroke();
-			fill(255, 0, 255, 255);
-			rect(x, y, this.w, this.w);
-		}
 	}
 
 	getNeighbors(grid, cols, rows) {
 		this.neighbors = [];
 
-		let top = grid[index(this.i, this.j - 1, cols, rows)];
-		let right = grid[index(this.i + 1, this.j, cols, rows)];
-		let bottom = grid[index(this.i, this.j + 1, cols, rows)];
-		let left = grid[index(this.i - 1, this.j, cols, rows)];
+		const top = grid[index(this.i, this.j - 1, cols, rows)];
+		const right = grid[index(this.i + 1, this.j, cols, rows)];
+		const bottom = grid[index(this.i, this.j + 1, cols, rows)];
+		const left = grid[index(this.i - 1, this.j, cols, rows)];
 
 		if (top && !top.visited) {
+			top.is = 'top';
 			this.neighbors.push(top);
 		}
 		if (right && !right.visited) {
+			right.is = 'right';
 			this.neighbors.push(right);
 		}
 		if (bottom && !bottom.visited) {
+			bottom.is = 'bottom';
 			this.neighbors.push(bottom);
 		}
 		if (left && !left.visited) {
+			left.is = 'left';
 			this.neighbors.push(left);
 		}
 
@@ -85,7 +93,7 @@ class Cell {
 		this.getNeighbors(grid, cols, rows);
 
 		if (this.neighbors.length > 0) {
-			let r = floor(random(0, this.neighbors.length));
+			const r = floor(random(0, this.neighbors.length));
 
 
 			return this.neighbors[r];
