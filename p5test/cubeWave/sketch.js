@@ -37,9 +37,9 @@ function draw() {
 			let a = angle + offset;
 			let h = floor(map(sin(a), -1, 1, 100, 300));
 
-			if (x - halfWidth == 0 && z - halfWidth == 0) {
+			if (d < maxD / 10) {
 				if (h == 100) {
-					typeof navigator.vibrate === 'function' && navigator.vibrate(500);
+					typeof navigator.vibrate === 'function' && navigator.vibrate(5);
 				}
 			}
 
