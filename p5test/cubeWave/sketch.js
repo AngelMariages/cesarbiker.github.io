@@ -39,7 +39,7 @@ function draw() {
 
 			if (d < maxD / 10) {
 				if (h == 100) {
-					typeof navigator.vibrate === 'function' && navigator.vibrate(5);
+					typeof navigator.vibrate === 'function' && navigator.vibrate(50);
 				}
 			}
 
